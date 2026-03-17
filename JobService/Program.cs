@@ -26,7 +26,7 @@ builder.Services.AddCors(options =>
         {
             if (builder.Environment.IsDevelopment())
             {
-                policy.WithOrigins("http://localhost:3000");
+                policy.WithOrigins("http://localhost:3000", "http://localhost:3001");
             }
             else
             {
