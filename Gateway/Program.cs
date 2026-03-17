@@ -3,6 +3,11 @@ using Ocelot.Middleware;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// ADD THIS: Configure port for Render
+var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
+Console.WriteLine($"Starting Gateway on port {port}");
+builder.WebHost.UseUrls($"http://*:{port}");
+
 builder.Configuration
     .SetBasePath(builder.Environment.ContentRootPath)
     .AddJsonFile("ocelot.json", optional: false, reloadOnChange: true)
@@ -36,6 +41,10 @@ builder.Services.AddCors(options =>
 });
 
 var app = builder.Build();
+
+// ADD THIS: Health check endpoint
+app.MapGet("/", () => "Gateway is running!");
+app.MapGet("/health", () => "Healthy");
 
 // Important: CORS must be before Ocelot
 app.UseCors("AllowFrontend");

@@ -10,6 +10,11 @@ using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// FIX: Configure port for Render
+var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
+Console.WriteLine($"Starting on port {port}");
+builder.WebHost.UseUrls($"http://*:{port}");
+
 builder.Host.UseSerilog((ctx, cfg) =>
     cfg.ReadFrom.Configuration(ctx.Configuration));
 
@@ -72,15 +77,14 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 
 var app = builder.Build();
 
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
+// FIX: Enable Swagger in ALL environments for debugging
+// Remove the if condition temporarily
+app.UseSwagger();
+app.UseSwaggerUI();
 
 app.UseHttpsRedirection();
 
-// FIXED: Use the correct policy name "AllowFrontend" instead of "AllowReactApp"
+// Use the correct policy name
 app.UseCors("AllowFrontend");
 
 app.UseAuthentication();
@@ -89,5 +93,8 @@ app.UseAuthorization();
 app.UseMiddleware<ExceptionMiddleware>();
 
 app.MapControllers();
+
+// Add a root endpoint for health check
+app.MapGet("/", () => "AuthService is running!");
 
 app.Run();

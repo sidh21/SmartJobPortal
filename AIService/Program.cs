@@ -8,6 +8,11 @@ using System.Reflection;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// ADD THIS: Configure port for Render
+var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
+Console.WriteLine($"Starting AIService on port {port}");
+builder.WebHost.UseUrls($"http://*:{port}");
+
 builder.Host.UseSerilog((ctx, cfg) =>
     cfg.ReadFrom.Configuration(ctx.Configuration));
 
@@ -53,12 +58,9 @@ builder.Services.AddScoped<IAIRepository, AIRepository>();
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
+// FIX: Enable Swagger in ALL environments (remove if condition)
+app.UseSwagger();
+app.UseSwaggerUI();
 
 app.UseHttpsRedirection();
 
@@ -68,5 +70,8 @@ app.UseCors("AllowReactApp");
 // No Authentication/Authorization middleware since JWT is not needed
 app.UseMiddleware<ExceptionMiddleware>();
 app.MapControllers();
+
+// ADD THIS: Health check endpoint
+app.MapGet("/", () => "AIService is running!");
 
 app.Run();

@@ -5,7 +5,7 @@
       "DownstreamScheme": "https",
       "DownstreamHostAndPorts": [
         {
-          "Host": "smartjobportal-job.azurewebsites.net", // Replace with your actual deployed URL
+          "Host": "smartjobportal-job.onrender.com",
           "Port": 443
         }
       ],
@@ -17,7 +17,7 @@
       "DownstreamScheme": "https",
       "DownstreamHostAndPorts": [
         {
-          "Host": "smartjobportal-job.azurewebsites.net", // Replace with your actual deployed URL
+          "Host": "smartjobportal-job.onrender.com",
           "Port": 443
         }
       ],
@@ -29,7 +29,7 @@
       "DownstreamScheme": "https",
       "DownstreamHostAndPorts": [
         {
-          "Host": "smartjobportal-application.azurewebsites.net", // Replace with your actual deployed URL
+          "Host": "smartjobportal-application.onrender.com",
           "Port": 443
         }
       ],
@@ -41,7 +41,7 @@
       "DownstreamScheme": "https",
       "DownstreamHostAndPorts": [
         {
-          "Host": "smartjobportal-application.azurewebsites.net", // Replace with your actual deployed URL
+          "Host": "smartjobportal-application.onrender.com",
           "Port": 443
         }
       ],
@@ -53,7 +53,7 @@
       "DownstreamScheme": "https",
       "DownstreamHostAndPorts": [
         {
-          "Host": "smartjobportal-ai.azurewebsites.net", // Replace with your actual deployed URL
+          "Host": "smartjobportal-ai.onrender.com",
           "Port": 443
         }
       ],
@@ -65,7 +65,7 @@
       "DownstreamScheme": "https",
       "DownstreamHostAndPorts": [
         {
-          "Host": "smartjobportal-auth.azurewebsites.net", // Replace with your actual deployed URL
+          "Host": "smartjobportal-auth-2.onrender.com",
           "Port": 443
         }
       ],
@@ -74,6 +74,6 @@
     }
   ],
   "GlobalConfiguration": {
-    "BaseUrl": "https://smartjobportal-gateway.azurewebsites.net" // Your Gateway URL
+    "BaseUrl": "https://smartjobportal-gateway.onrender.com"
   }
 }

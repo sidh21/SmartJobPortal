@@ -17,10 +17,12 @@ COPY AuthService/ AuthService/
 WORKDIR /src/AuthService
 RUN dotnet publish -c Release -o /app/publish
 
-# Runtime image
+# Runtime image - FIXED for Render
 FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS runtime
 WORKDIR /app
 COPY --from=build /app/publish .
-EXPOSE 80
-ENV ASPNETCORE_URLS=http://+:80
+
+# REMOVED: EXPOSE 80 - Render provides dynamic port
+# REMOVED: ENV ASPNETCORE_URLS=http://+:80 - Will use PORT env var
+
 ENTRYPOINT ["dotnet", "AuthService.dll"]

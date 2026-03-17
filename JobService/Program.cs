@@ -11,6 +11,11 @@ using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// ADD THIS: Configure port for Render
+var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
+Console.WriteLine($"Starting JobService on port {port}");
+builder.WebHost.UseUrls($"http://*:{port}");
+
 // Serilog
 builder.Host.UseSerilog((ctx, cfg) =>
     cfg.ReadFrom.Configuration(ctx.Configuration));
@@ -21,21 +26,20 @@ builder.Services.AddEndpointsApiExplorer();
 // Add CORS policy
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowFrontend",  // Keep this name consistent
-        policy =>
+    options.AddPolicy("AllowFrontend", policy =>
+    {
+        if (builder.Environment.IsDevelopment())
         {
-            if (builder.Environment.IsDevelopment())
-            {
-                policy.WithOrigins("http://localhost:3000", "http://localhost:3001");
-            }
-            else
-            {
-                policy.WithOrigins("https://smartjobportal-frontend.vercel.app");
-            }
-            policy.AllowAnyMethod()
-                  .AllowAnyHeader()
-                  .AllowCredentials();
-        });
+            policy.WithOrigins("http://localhost:3000", "http://localhost:3001");
+        }
+        else
+        {
+            policy.WithOrigins("https://smartjobportal-frontend.vercel.app");
+        }
+        policy.AllowAnyMethod()
+              .AllowAnyHeader()
+              .AllowCredentials();
+    });
 });
 
 // Swagger with JWT support
@@ -101,11 +105,9 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 
 var app = builder.Build();
 
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
+// FIX: Enable Swagger in ALL environments (remove if condition)
+app.UseSwagger();
+app.UseSwaggerUI();
 
 app.UseHttpsRedirection();
 app.UseCors("AllowFrontend");
@@ -114,4 +116,8 @@ app.UseMiddleware<ExceptionMiddleware>();
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
+
+// ADD THIS: Health check endpoint
+app.MapGet("/", () => "JobService is running!");
+
 app.Run();

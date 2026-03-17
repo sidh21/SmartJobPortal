@@ -10,6 +10,11 @@ using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// ADD THIS: Configure port for Render
+var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
+Console.WriteLine($"Starting ApplicationService on port {port}");
+builder.WebHost.UseUrls($"http://*:{port}");
+
 builder.Host.UseSerilog((ctx, cfg) =>
     cfg.ReadFrom.Configuration(ctx.Configuration));
 
@@ -75,12 +80,9 @@ if (!string.IsNullOrEmpty(jwtKey))
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
+// FIX: Enable Swagger in ALL environments (remove if condition)
+app.UseSwagger();
+app.UseSwaggerUI();
 
 app.UseHttpsRedirection();
 
@@ -91,5 +93,8 @@ app.UseAuthentication();
 app.UseAuthorization();
 app.UseMiddleware<ExceptionMiddleware>();
 app.MapControllers();
+
+// ADD THIS: Health check endpoint
+app.MapGet("/", () => "ApplicationService is running!");
 
 app.Run();
