@@ -1,20 +1,20 @@
 FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 WORKDIR /src
 
-# Copy and restore Shared project first
-COPY ["Shared/Shared.csproj", "Shared/"]
-RUN dotnet restore "Shared/Shared.csproj"
+# Copy Shared project (from root)
+COPY Shared/Shared.csproj Shared/
+RUN dotnet restore Shared/Shared.csproj
 
-# Copy and restore AuthService
-COPY ["AuthService/AuthService.csproj", "AuthService/"]
-RUN dotnet restore "AuthService/AuthService.csproj"
+# Copy AuthService project
+COPY AuthService/AuthService.csproj AuthService/
+RUN dotnet restore AuthService/AuthService.csproj
 
 # Copy all source code
 COPY Shared/ Shared/
 COPY AuthService/ AuthService/
 
 # Build and publish AuthService
-WORKDIR "/src/AuthService"
+WORKDIR /src/AuthService
 RUN dotnet publish -c Release -o /app/publish
 
 # Runtime image
