@@ -1,0 +1,8 @@
+{
+  "dependencies": {
+    "@types/react-router-dom": "^5.3.3",
+    "axios": "^1.13.6",
+    "react-router-dom": "^7.13.1",
+    "sass": "^1.98.0"
+  }
+}
