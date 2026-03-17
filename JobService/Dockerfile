@@ -1,20 +1,24 @@
-FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
+FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 WORKDIR /src
 
-# Copy csproj and restore
-COPY ["JobService.csproj", "."]
-RUN dotnet restore
+# Copy Shared project first
+COPY Shared/Shared.csproj Shared/
+RUN dotnet restore Shared/Shared.csproj
 
-# Copy everything else and publish
-COPY . .
+# Copy JobService project
+COPY JobService/JobService.csproj JobService/
+RUN dotnet restore JobService/JobService.csproj
+
+# Copy all source code
+COPY Shared/ Shared/
+COPY JobService/ JobService/
+
+# Build and publish
+WORKDIR /src/JobService
 RUN dotnet publish -c Release -o /app/publish
 
-# Runtime image - FIXED for Render
-FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS runtime
+# Runtime image
+FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS runtime
 WORKDIR /app
 COPY --from=build /app/publish .
-
-# REMOVED: EXPOSE 80 - Render provides dynamic port
-# REMOVED: ENV ASPNETCORE_URLS=http://+:80 - Will use PORT env var
-
 ENTRYPOINT ["dotnet", "JobService.dll"]

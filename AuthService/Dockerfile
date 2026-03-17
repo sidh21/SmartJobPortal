@@ -1,7 +1,7 @@
 FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 WORKDIR /src
 
-# Copy Shared project (from root)
+# Copy Shared project first
 COPY Shared/Shared.csproj Shared/
 RUN dotnet restore Shared/Shared.csproj
 
@@ -13,16 +13,12 @@ RUN dotnet restore AuthService/AuthService.csproj
 COPY Shared/ Shared/
 COPY AuthService/ AuthService/
 
-# Build and publish AuthService
+# Build and publish
 WORKDIR /src/AuthService
 RUN dotnet publish -c Release -o /app/publish
 
-# Runtime image - FIXED for Render
+# Runtime image
 FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS runtime
 WORKDIR /app
 COPY --from=build /app/publish .
-
-# REMOVED: EXPOSE 80 - Render provides dynamic port
-# REMOVED: ENV ASPNETCORE_URLS=http://+:80 - Will use PORT env var
-
 ENTRYPOINT ["dotnet", "AuthService.dll"]
