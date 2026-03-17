@@ -1,18 +1,17 @@
 FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 WORKDIR /src
 
-# AIService doesn't need Shared project (but keeping commented for reference)
-# COPY Shared/Shared.csproj Shared/
-# RUN dotnet restore Shared/Shared.csproj
+# Copy Shared project first (AIService needs it!)
+COPY Shared/Shared.csproj Shared/
+RUN dotnet restore Shared/Shared.csproj
 
-# Copy the project file correctly (with folder path)
+# Copy AIService project
 COPY AIService/AIService.csproj AIService/
 RUN dotnet restore AIService/AIService.csproj
 
-# Copy everything else
+# Copy all source code
+COPY Shared/ Shared/
 COPY AIService/ AIService/
-# Only copy Shared if needed (uncomment if required)
-# COPY Shared/ Shared/
 
 # Build and publish
 WORKDIR /src/AIService
