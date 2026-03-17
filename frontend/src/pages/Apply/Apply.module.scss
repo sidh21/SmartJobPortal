@@ -1,0 +1,151 @@
+.container {
+  max-width: 700px;
+  margin: 2rem auto;
+  padding: 0 1.5rem;
+
+  .card {
+    background: white;
+    border-radius: 16px;
+    padding: 2.5rem;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+
+    h2 {
+      font-size: 1.6rem;
+      color: #1a1a2e;
+      margin-bottom: 0.3rem;
+    }
+
+    .company {
+      color: #666;
+      font-size: 0.9rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .error {
+      background: #ffe0e0;
+      color: #e94560;
+      padding: 0.8rem;
+      border-radius: 8px;
+      margin-bottom: 1rem;
+      font-size: 0.875rem;
+    }
+
+    .field {
+      margin-bottom: 1.2rem;
+
+      label {
+        display: block;
+        font-size: 0.875rem;
+        font-weight: 500;
+        color: #333;
+        margin-bottom: 0.4rem;
+      }
+
+      input, textarea {
+        width: 100%;
+        padding: 0.75rem 1rem;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        font-size: 0.95rem;
+        box-sizing: border-box;
+        font-family: inherit;
+        transition: border 0.2s;
+        resize: vertical;
+
+        &:focus {
+          outline: none;
+          border-color: #e94560;
+        }
+      }
+    }
+
+    .actions {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 1.5rem;
+
+      .backBtn {
+        background: none;
+        border: 2px solid #ddd;
+        padding: 0.7rem 1.5rem;
+        border-radius: 8px;
+        cursor: pointer;
+        color: #555;
+        transition: all 0.2s;
+
+        &:hover {
+          border-color: #1a1a2e;
+          color: #1a1a2e;
+        }
+      }
+
+      .submitBtn {
+        background: #e94560;
+        color: white;
+        border: none;
+        padding: 0.8rem 2rem;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 1rem;
+        font-weight: 500;
+        transition: background 0.2s;
+
+        &:hover:not(:disabled) {
+          background: #c73652;
+        }
+
+        &:disabled {
+          opacity: 0.7;
+          cursor: not-allowed;
+        }
+      }
+    }
+  }
+}
+
+.successContainer {
+  min-height: 80vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  .successCard {
+    background: white;
+    border-radius: 16px;
+    padding: 3rem;
+    text-align: center;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    max-width: 400px;
+
+    .successIcon {
+      font-size: 4rem;
+      margin-bottom: 1rem;
+    }
+
+    h2 {
+      font-size: 1.5rem;
+      color: #1a1a2e;
+      margin-bottom: 0.5rem;
+    }
+
+    p {
+      color: #666;
+      margin-bottom: 1.5rem;
+    }
+
+    button {
+      background: #e94560;
+      color: white;
+      border: none;
+      padding: 0.8rem 2rem;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 1rem;
+      transition: background 0.2s;
+
+      &:hover {
+        background: #c73652;
+      }
+    }
+  }
+}

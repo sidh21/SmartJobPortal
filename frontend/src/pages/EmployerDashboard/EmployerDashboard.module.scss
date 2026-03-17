@@ -1,0 +1,178 @@
+.container {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 2rem;
+
+  .header {
+    margin-bottom: 2rem;
+    h1 { font-size: 2rem; color: #1a1a2e; margin-bottom: 0.3rem; }
+    p { color: #666; }
+  }
+
+  .error {
+    background: #ffe0e0;
+    color: #e94560;
+    padding: 0.8rem;
+    border-radius: 8px;
+    margin-bottom: 1rem;
+  }
+
+  .success {
+    background: #d4edda;
+    color: #155724;
+    padding: 0.8rem;
+    border-radius: 8px;
+    margin-bottom: 1rem;
+  }
+
+  .tabs {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 2rem;
+
+    button {
+      background: none;
+      border: 2px solid #ddd;
+      padding: 0.6rem 1.5rem;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 0.9rem;
+      color: #555;
+      transition: all 0.2s;
+
+      &:hover { border-color: #e94560; color: #e94560; }
+      &.active {
+        background: #e94560;
+        border-color: #e94560;
+        color: white;
+      }
+    }
+  }
+
+  .jobsList {
+    .jobItem {
+      background: white;
+      border-radius: 12px;
+      padding: 1.2rem 1.5rem;
+      margin-bottom: 1rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+
+      .jobInfo {
+        h3 { margin: 0 0 0.3rem; color: #1a1a2e; font-size: 1rem; }
+        span { color: #666; font-size: 0.875rem; }
+      }
+
+      .jobActions {
+        display: flex;
+        gap: 0.8rem;
+
+        button {
+          padding: 0.4rem 1rem;
+          border-radius: 6px;
+          cursor: pointer;
+          font-size: 0.875rem;
+          border: none;
+          transition: opacity 0.2s;
+
+          &:hover { opacity: 0.85; }
+        }
+
+        .viewBtn { background: #e8f4fd; color: #1a73e8; }
+        .deleteBtn { background: #ffe0e0; color: #e94560; }
+      }
+    }
+
+    .applications {
+      background: white;
+      border-radius: 12px;
+      padding: 1.5rem;
+      margin-top: 1.5rem;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+
+      h3 { margin-bottom: 1rem; color: #1a1a2e; }
+
+      .appItem {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.8rem 0;
+        border-bottom: 1px solid #f0f0f0;
+
+        &:last-child { border-bottom: none; }
+
+        div {
+          display: flex;
+          flex-direction: column;
+          gap: 0.2rem;
+
+          strong { font-size: 0.9rem; color: #1a1a2e; }
+          span { font-size: 0.8rem; color: #666; }
+        }
+
+        .status {
+          padding: 0.3rem 0.8rem;
+          border-radius: 20px;
+          font-size: 0.8rem;
+          font-weight: 500;
+        }
+      }
+    }
+  }
+
+  .postJob {
+    background: white;
+    border-radius: 16px;
+    padding: 2rem;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+
+    .field {
+      margin-bottom: 1.2rem;
+
+      label {
+        display: block;
+        font-size: 0.875rem;
+        font-weight: 500;
+        color: #333;
+        margin-bottom: 0.4rem;
+      }
+
+      input, select, textarea {
+        width: 100%;
+        padding: 0.75rem 1rem;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        font-size: 0.95rem;
+        box-sizing: border-box;
+        font-family: inherit;
+        resize: vertical;
+        transition: border 0.2s;
+
+        &:focus { outline: none; border-color: #e94560; }
+      }
+    }
+
+    .row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+    }
+
+    .submitBtn {
+      background: #e94560;
+      color: white;
+      border: none;
+      padding: 0.85rem 2rem;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 1rem;
+      font-weight: 500;
+      transition: background 0.2s;
+
+      &:hover:not(:disabled) { background: #c73652; }
+      &:disabled { opacity: 0.7; cursor: not-allowed; }
+    }
+  }
+}

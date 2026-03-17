@@ -1,0 +1,67 @@
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 2rem;
+  background-color: #1a1a2e;
+  color: white;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+
+  .brand a {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #e94560;
+    text-decoration: none;
+  }
+
+  .links {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+
+    a {
+      color: white;
+      text-decoration: none;
+      font-size: 0.95rem;
+      transition: color 0.2s;
+
+      &:hover {
+        color: #e94560;
+      }
+    }
+
+    button {
+      background: #e94560;
+      color: white;
+      border: none;
+      padding: 0.4rem 1rem;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.9rem;
+
+      &:hover {
+        background: #c73652;
+      }
+    }
+  }
+
+  .userInfo {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+
+    span {
+      font-size: 0.9rem;
+    }
+
+    .role {
+      background: #e94560;
+      padding: 0.2rem 0.6rem;
+      border-radius: 20px;
+      font-size: 0.75rem;
+    }
+  }
+}

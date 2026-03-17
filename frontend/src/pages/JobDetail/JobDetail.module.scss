@@ -1,0 +1,114 @@
+.container {
+  max-width: 800px;
+  margin: 2rem auto;
+  padding: 0 1.5rem;
+
+  .card {
+    background: white;
+    border-radius: 16px;
+    padding: 2.5rem;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 1.5rem;
+
+      h1 {
+        font-size: 1.8rem;
+        color: #1a1a2e;
+        margin-bottom: 0.3rem;
+      }
+
+      .company {
+        color: #555;
+        font-size: 1rem;
+      }
+
+      .jobType {
+        background: #e8f4fd;
+        color: #1a73e8;
+        padding: 0.4rem 1rem;
+        border-radius: 20px;
+        font-size: 0.875rem;
+        white-space: nowrap;
+      }
+    }
+
+    .meta {
+      display: flex;
+      gap: 1.5rem;
+      flex-wrap: wrap;
+      margin-bottom: 2rem;
+      padding-bottom: 1.5rem;
+      border-bottom: 1px solid #f0f0f0;
+
+      span {
+        color: #555;
+        font-size: 0.9rem;
+      }
+    }
+
+    .section {
+      margin-bottom: 2rem;
+
+      h3 {
+        font-size: 1.1rem;
+        color: #1a1a2e;
+        margin-bottom: 0.8rem;
+      }
+
+      p {
+        color: #555;
+        line-height: 1.8;
+        white-space: pre-wrap;
+      }
+    }
+
+    .actions {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 2rem;
+
+      .backBtn {
+        background: none;
+        border: 2px solid #ddd;
+        padding: 0.7rem 1.5rem;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 0.9rem;
+        color: #555;
+        transition: all 0.2s;
+
+        &:hover {
+          border-color: #1a1a2e;
+          color: #1a1a2e;
+        }
+      }
+
+      .applyBtn {
+        background: #e94560;
+        color: white;
+        border: none;
+        padding: 0.8rem 2rem;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 1rem;
+        font-weight: 500;
+        transition: background 0.2s;
+
+        &:hover {
+          background: #c73652;
+        }
+      }
+    }
+  }
+}
+
+.loading {
+  text-align: center;
+  padding: 3rem;
+  color: #666;
+}
