@@ -15,16 +15,28 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+// Add CORS policy with environment support
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowReactApp",
-        policy =>
+    options.AddPolicy("AllowReactApp", policy =>
+    {
+        if (builder.Environment.IsDevelopment())
         {
+            // In development, allow localhost
+            policy.WithOrigins("http://localhost:3000")
+                  .AllowAnyHeader()
+                  .AllowAnyMethod()
+                  .AllowCredentials();
+        }
+        else
+        {
+            // In production, only allow your live frontend
             policy.WithOrigins("https://smartjobportal-frontend.vercel.app")
                   .AllowAnyHeader()
                   .AllowAnyMethod()
                   .AllowCredentials();
-        });
+        }
+    });
 });
 
 builder.Services.AddMediatR(cfg =>
@@ -50,10 +62,11 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-// IMPORTANT: UseCors must be placed here - after UseHttpsRedirection and before UseAuthorization
+// CORS must be placed after UseHttpsRedirection
 app.UseCors("AllowReactApp");
 
-app.UseAuthorization();
+// No Authentication/Authorization middleware since JWT is not needed
 app.UseMiddleware<ExceptionMiddleware>();
 app.MapControllers();
+
 app.Run();

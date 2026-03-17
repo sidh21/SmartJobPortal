@@ -20,14 +20,25 @@ builder.Services.AddSwaggerGen();
 // Add CORS policy
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowReactApp",
-        policy =>
+    options.AddPolicy("AllowFrontend", policy =>
+    {
+        if (builder.Environment.IsDevelopment())
         {
-            policy.WithOrigins("https://smartjobportal-frontend.vercel.app")
-                  .AllowAnyHeader()
+            // In development, allow localhost
+            policy.WithOrigins("http://localhost:3000")
                   .AllowAnyMethod()
+                  .AllowAnyHeader()
                   .AllowCredentials();
-        });
+        }
+        else
+        {
+            // In production, only allow your live frontend
+            policy.WithOrigins("https://smartjobportal-frontend.vercel.app")
+                  .AllowAnyMethod()
+                  .AllowAnyHeader()
+                  .AllowCredentials();
+        }
+    });
 });
 
 builder.Services.AddMediatR(cfg =>
@@ -69,7 +80,8 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-app.UseCors("AllowReactApp");
+// FIXED: Use the correct policy name "AllowFrontend" instead of "AllowReactApp"
+app.UseCors("AllowFrontend");
 
 app.UseAuthentication();
 app.UseAuthorization();

@@ -21,13 +21,20 @@ builder.Services.AddEndpointsApiExplorer();
 // Add CORS policy
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowReactApp",
+    options.AddPolicy("AllowFrontend",  // Keep this name consistent
         policy =>
         {
-            policy.WithOrigins("https://smartjobportal-frontend.vercel.app") 
+            if (builder.Environment.IsDevelopment())
+            {
+                policy.WithOrigins("http://localhost:3000");
+            }
+            else
+            {
+                policy.WithOrigins("https://smartjobportal-frontend.vercel.app");
+            }
+            policy.AllowAnyMethod()
                   .AllowAnyHeader()
-                  .AllowAnyMethod()
-                  .AllowCredentials(); 
+                  .AllowCredentials();
         });
 });
 
@@ -101,8 +108,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-
-app.UseCors("AllowReactApp");
+app.UseCors("AllowFrontend");
 
 app.UseMiddleware<ExceptionMiddleware>();
 app.UseAuthentication();

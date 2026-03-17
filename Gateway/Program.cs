@@ -11,19 +11,38 @@ builder.Configuration
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddOcelot();
 
-// Allow all CORS for development
+// Configure CORS for production
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowAll", policy =>
+    options.AddPolicy("AllowFrontend", policy =>
     {
-        policy.AllowAnyOrigin()
-              .AllowAnyMethod()
-              .AllowAnyHeader();
+        if (builder.Environment.IsDevelopment())
+        {
+            // In development, allow localhost
+            policy.WithOrigins("http://localhost:3000")
+                  .AllowAnyMethod()
+                  .AllowAnyHeader()
+                  .AllowCredentials();
+        }
+        else
+        {
+            // In production, only allow your live frontend
+            policy.WithOrigins("https://smartjobportal-frontend.vercel.app")
+                  .AllowAnyMethod()
+                  .AllowAnyHeader()
+                  .AllowCredentials();
+        }
     });
 });
 
 var app = builder.Build();
 
-app.UseCors("AllowAll");
+// Important: CORS must be before Ocelot
+app.UseCors("AllowFrontend");
+
+// Add authentication if needed
+// app.UseAuthentication();
+// app.UseAuthorization();
+
 await app.UseOcelot();
 app.Run();

@@ -5,8 +5,8 @@
       "DownstreamScheme": "https",
       "DownstreamHostAndPorts": [
         {
-          "Host": "localhost",
-          "Port": 7001
+          "Host": "smartjobportal-job.azurewebsites.net", // Replace with your actual deployed URL
+          "Port": 443
         }
       ],
       "UpstreamPathTemplate": "/gateway/jobs/{everything}",
@@ -17,8 +17,8 @@
       "DownstreamScheme": "https",
       "DownstreamHostAndPorts": [
         {
-          "Host": "localhost",
-          "Port": 7001
+          "Host": "smartjobportal-job.azurewebsites.net", // Replace with your actual deployed URL
+          "Port": 443
         }
       ],
       "UpstreamPathTemplate": "/gateway/jobs",
@@ -29,8 +29,8 @@
       "DownstreamScheme": "https",
       "DownstreamHostAndPorts": [
         {
-          "Host": "localhost",
-          "Port": 7002
+          "Host": "smartjobportal-application.azurewebsites.net", // Replace with your actual deployed URL
+          "Port": 443
         }
       ],
       "UpstreamPathTemplate": "/gateway/applications/{everything}",
@@ -41,8 +41,8 @@
       "DownstreamScheme": "https",
       "DownstreamHostAndPorts": [
         {
-          "Host": "localhost",
-          "Port": 7002
+          "Host": "smartjobportal-application.azurewebsites.net", // Replace with your actual deployed URL
+          "Port": 443
         }
       ],
       "UpstreamPathTemplate": "/gateway/applications",
@@ -53,8 +53,8 @@
       "DownstreamScheme": "https",
       "DownstreamHostAndPorts": [
         {
-          "Host": "localhost",
-          "Port": 7003
+          "Host": "smartjobportal-ai.azurewebsites.net", // Replace with your actual deployed URL
+          "Port": 443
         }
       ],
       "UpstreamPathTemplate": "/gateway/ai/{everything}",
@@ -65,8 +65,8 @@
       "DownstreamScheme": "https",
       "DownstreamHostAndPorts": [
         {
-          "Host": "localhost",
-          "Port": 7004
+          "Host": "smartjobportal-auth.azurewebsites.net", // Replace with your actual deployed URL
+          "Port": 443
         }
       ],
       "UpstreamPathTemplate": "/gateway/auth/{everything}",
@@ -74,6 +74,6 @@
     }
   ],
   "GlobalConfiguration": {
-    "BaseUrl": "https://localhost:7000"
+    "BaseUrl": "https://smartjobportal-gateway.azurewebsites.net" // Your Gateway URL
   }
 }
