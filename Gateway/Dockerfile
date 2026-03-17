@@ -1,11 +1,15 @@
 FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 WORKDIR /src
 
-# Gateway doesn't need Shared project (usually)
-COPY Gateway.csproj .
-RUN dotnet restore
+# Copy the project file with correct path (including folder)
+COPY Gateway/Gateway.csproj Gateway/
+RUN dotnet restore Gateway/Gateway.csproj
 
-COPY . .
+# Copy everything else
+COPY Gateway/ Gateway/
+
+# Build and publish
+WORKDIR /src/Gateway
 RUN dotnet publish -c Release -o /app/publish
 
 # Runtime image
