@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { ApiResponse, AuthResponse } from '../types';
 
-const BASE_URL = 'https://localhost:7004/api/Auth';
+const BASE_URL = process.env.REACT_APP_AUTH_API || 'https://smartjobportal-auth-2.onrender.com/api/Auth';
 
 export const registerApi = async (
   fullName: string,

@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { ApiResponse, CreateJobDto, Job } from '../types';
 
-const BASE_URL = 'https://localhost:7001/api/Job';
+const BASE_URL = process.env.REACT_APP_JOB_API || 'https://smartjobportal-job.onrender.com/api/Job';
 
 const getHeaders = () => ({
   headers: {

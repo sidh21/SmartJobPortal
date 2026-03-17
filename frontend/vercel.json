@@ -1,0 +1,11 @@
+{
+  "rewrites": [{ "source": "/(.*)", "destination": "/" }],
+  "buildCommand": "npm run build",
+  "outputDirectory": "build",
+  "env": {
+    "REACT_APP_AUTH_API": "https://smartjobportal-auth-2.onrender.com/api/Auth",
+    "REACT_APP_JOB_API": "https://smartjobportal-job.onrender.com/api/Job",
+    "REACT_APP_APPLICATION_API": "https://smartjobportal-application.onrender.com/api/Application",
+    "REACT_APP_AI_API": "https://smartjobportal-ai.onrender.com/api/AI"
+  }
+}
