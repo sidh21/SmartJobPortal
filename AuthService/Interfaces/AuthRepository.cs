@@ -27,13 +27,13 @@ public class AuthRepository : IAuthRepository
         };
 
         await conn.ExecuteAsync(
-            "CALL \"usp_RegisterUser\"(@p_FullName, @p_Email, @p_PasswordHash, @p_Role, @p_UserId)",
+            "CALL \"usp_RegisterUser\"(@\"p_FullName\", @\"p_Email\", @\"p_PasswordHash\", @\"p_Role\", @\"p_UserId\")",
             new NpgsqlParameter[]
             {
-                new NpgsqlParameter("p_FullName", user.FullName),
-                new NpgsqlParameter("p_Email", user.Email),
-                new NpgsqlParameter("p_PasswordHash", user.PasswordHash),
-                new NpgsqlParameter("p_Role", user.Role),
+                new NpgsqlParameter("\"p_FullName\"", user.FullName),
+                new NpgsqlParameter("\"p_Email\"", user.Email),
+                new NpgsqlParameter("\"p_PasswordHash\"", user.PasswordHash),
+                new NpgsqlParameter("\"p_Role\"", user.Role),
                 p_UserId
             }
         );
