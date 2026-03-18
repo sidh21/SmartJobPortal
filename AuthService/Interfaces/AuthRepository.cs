@@ -1,6 +1,7 @@
 ﻿using AuthService.Models;
 using Dapper;
 using Npgsql;
+using System.Data;
 
 namespace AuthService.Interfaces;
 
@@ -20,35 +21,32 @@ public class AuthRepository : IAuthRepository
     {
         using var conn = CreateConnection();
 
-        // Use raw SQL with CALL statement instead of StoredProcedure type
-        var sql = "CALL \"usp_RegisterUser\"(@p_FullName, @p_Email, @p_PasswordHash, @p_Role, null)";
+        var parameters = new DynamicParameters();
+        parameters.Add("p_FullName", user.FullName);
+        parameters.Add("p_Email", user.Email);
+        parameters.Add("p_PasswordHash", user.PasswordHash);
+        parameters.Add("p_Role", user.Role);
+        parameters.Add("p_UserId", dbType: DbType.Int32, direction: ParameterDirection.Output);
 
-        var parameters = new
-        {
-            p_FullName = user.FullName,
-            p_Email = user.Email,
-            p_PasswordHash = user.PasswordHash,
-            p_Role = user.Role
-        };
+        await conn.ExecuteAsync(
+            "CALL \"usp_RegisterUser\"(@p_FullName, @p_Email, @p_PasswordHash, @p_Role, @p_UserId)",
+            parameters
+        );
 
-        await conn.ExecuteAsync(sql, parameters);
-
-        // Get the last inserted ID
-        var userId = await conn.ExecuteScalarAsync<int>("SELECT LASTVAL();");
-        return userId;
+        return parameters.Get<int>("p_UserId");
     }
 
     public async Task<User?> GetUserByEmailAsync(string email)
     {
         using var conn = CreateConnection();
-        var sql = "SELECT * FROM \"Users\" WHERE \"Email\" = @p_Email";
-        return await conn.QueryFirstOrDefaultAsync<User>(sql, new { p_Email = email });
+        var sql = "SELECT * FROM \"Users\" WHERE \"Email\" = @Email";
+        return await conn.QueryFirstOrDefaultAsync<User>(sql, new { Email = email });
     }
 
     public async Task<User?> GetUserByIdAsync(int userId)
     {
         using var conn = CreateConnection();
-        var sql = "SELECT * FROM \"Users\" WHERE \"UserId\" = @p_UserId";
-        return await conn.QueryFirstOrDefaultAsync<User>(sql, new { p_UserId = userId });
+        var sql = "SELECT * FROM \"Users\" WHERE \"UserId\" = @UserId";
+        return await conn.QueryFirstOrDefaultAsync<User>(sql, new { UserId = userId });
     }
 }
