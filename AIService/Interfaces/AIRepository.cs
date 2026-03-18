@@ -20,9 +20,15 @@ public class AIRepository : IAIRepository
     {
         using var conn = CreateConnection();
 
-        // ✅ FIXED: Added quotes for PostgreSQL case-sensitive names
         return await conn.ExecuteScalarAsync<int>(
-            "\"usp_SaveAIResult\"",
+            @"SELECT ""usp_SaveAIResult""(
+                @p_ApplicationId,
+                @p_JobId,
+                @p_MatchScore,
+                @p_Strengths,
+                @p_Gaps,
+                @p_Recommendation
+            )",
             new
             {
                 p_ApplicationId = result.ApplicationId,
@@ -31,8 +37,8 @@ public class AIRepository : IAIRepository
                 p_Strengths = result.Strengths,
                 p_Gaps = result.Gaps,
                 p_Recommendation = result.Recommendation
-            },
-            commandType: System.Data.CommandType.StoredProcedure
+            }
+            // ✅ NO commandType here — raw SQL, not StoredProcedure
         );
     }
 
@@ -40,11 +46,10 @@ public class AIRepository : IAIRepository
     {
         using var conn = CreateConnection();
 
-        // ✅ FIXED: Added quotes for PostgreSQL
         return await conn.QueryFirstOrDefaultAsync<AIResult>(
-            "\"usp_GetAIResultByApplicationId\"",
-            new { p_ApplicationId = applicationId },
-            commandType: System.Data.CommandType.StoredProcedure
+            @"SELECT * FROM ""usp_GetAIResultByApplicationId""(@p_ApplicationId)",
+            new { p_ApplicationId = applicationId }
+            // ✅ NO commandType here — raw SQL, not StoredProcedure
         );
     }
 }
