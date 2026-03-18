@@ -9,11 +9,12 @@ public class GeminiService : IGeminiService
     private readonly HttpClient _http;
     private readonly string _apiKey;
 
-    // ✅ Use only free tier models
+    // ✅ Updated model names (current as of 2024)
     private readonly string[] _models = new[]
     {
+        "gemini-1.5-flash-latest",
         "gemini-1.5-flash",
-        "gemini-1.5-flash-8b"
+        "gemini-pro"
     };
 
     public GeminiService(HttpClient http, IConfiguration config)
@@ -32,7 +33,8 @@ public class GeminiService : IGeminiService
         {
             try
             {
-                var url = $"https://generativelanguage.googleapis.com/v1beta/models/" +
+                // ✅ Updated API endpoint (v1 instead of v1beta)
+                var url = $"https://generativelanguage.googleapis.com/v1/models/" +
                           $"{model}:generateContent?key={_apiKey}";
 
                 var body = new
@@ -50,7 +52,9 @@ public class GeminiService : IGeminiService
                     generationConfig = new
                     {
                         temperature = 0.7,
-                        maxOutputTokens = 2048
+                        maxOutputTokens = 2048,
+                        topP = 0.8,
+                        topK = 10
                     }
                 };
 
@@ -60,25 +64,34 @@ public class GeminiService : IGeminiService
 
                 var response = await _http.PostAsync(url, content, ct);
 
-                // Log the error for debugging
+                // Log the full error for debugging
                 if (!response.IsSuccessStatusCode)
                 {
                     var errorContent = await response.Content.ReadAsStringAsync(ct);
-                    Console.WriteLine($"Gemini API Error ({model}): {response.StatusCode} - {errorContent}");
+                    Console.WriteLine($"Gemini API Error ({model}): {response.StatusCode}");
+                    Console.WriteLine($"Error Details: {errorContent}");
+                    Console.WriteLine($"URL Attempted: {url}");
 
-                    // If 403, try next model
+                    // If 404, model doesn't exist - try next
+                    if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
+                    {
+                        lastException = new Exception(
+                            $"Model {model} not found (404)");
+                        continue;
+                    }
+
+                    // If 403, API key issue
                     if (response.StatusCode == System.Net.HttpStatusCode.Forbidden)
                     {
                         lastException = new Exception(
-                            $"Model {model} returned 403. Error: {errorContent}");
+                            $"API key invalid or restricted (403): {errorContent}");
                         continue;
                     }
 
                     // If rate limited, try next model
                     if ((int)response.StatusCode == 429)
                     {
-                        lastException = new Exception(
-                            $"Model {model} rate limited");
+                        lastException = new Exception($"Model {model} rate limited");
                         await Task.Delay(2000, ct);
                         continue;
                     }
@@ -87,22 +100,38 @@ public class GeminiService : IGeminiService
                 response.EnsureSuccessStatusCode();
 
                 var responseJson = await response.Content.ReadAsStringAsync(ct);
+                Console.WriteLine($"Success with model: {model}");
+
                 var document = JsonDocument.Parse(responseJson);
 
-                return document
+                var text = document
                     .RootElement
                     .GetProperty("candidates")[0]
                     .GetProperty("content")
                     .GetProperty("parts")[0]
                     .GetProperty("text")
-                    .GetString()!;
+                    .GetString();
+
+                return text ?? throw new Exception("Empty response from Gemini");
+            }
+            catch (HttpRequestException ex)
+            {
+                lastException = ex;
+                Console.WriteLine($"HTTP Error with model {model}: {ex.Message}");
+                await Task.Delay(1000, ct);
+                continue;
+            }
+            catch (JsonException ex)
+            {
+                lastException = ex;
+                Console.WriteLine($"JSON Parse Error with model {model}: {ex.Message}");
+                await Task.Delay(1000, ct);
+                continue;
             }
             catch (Exception ex)
             {
                 lastException = ex;
                 Console.WriteLine($"Error with model {model}: {ex.Message}");
-
-                // Wait before trying next model
                 await Task.Delay(1000, ct);
                 continue;
             }
@@ -110,6 +139,7 @@ public class GeminiService : IGeminiService
 
         throw new Exception(
             $"All Gemini models failed. Last error: {lastException?.Message}. " +
-            $"Please check your API key at https://aistudio.google.com/app/apikey");
+            $"Please verify your API key at https://aistudio.google.com/app/apikey " +
+            $"and check the Render logs for detailed error messages.");
     }
 }
