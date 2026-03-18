@@ -3,13 +3,10 @@ using JobService.Interfaces;
 using JobService.Middleware;
 using MediatR;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.DataProtection;
-using Microsoft.AspNetCore.DataProtection.KeyManagement;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Serilog;
 using System.Reflection;
-using System.Runtime.Intrinsics.Arm;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -26,23 +23,18 @@ builder.Host.UseSerilog((ctx, cfg) =>
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 
-// ✅ FIXED CORS - Allow Vercel frontend
+// ✅ CORS - THIS IS CRITICAL
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowFrontend", policy =>
+    options.AddPolicy("AllowAll", policy =>
     {
-        policy.WithOrigins(
-            "http://localhost:3000",
-            "http://localhost:3001",
-            "https://smartjobportal-frontend.vercel.app"
-        )
-        .AllowAnyMethod()
-        .AllowAnyHeader()
-        .AllowCredentials();
+        policy.AllowAnyOrigin()
+              .AllowAnyMethod()
+              .AllowAnyHeader();
     });
 });
 
-// Swagger with JWT support
+// Swagger
 builder.Services.AddSwaggerGen(options =>
 {
     options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
@@ -52,7 +44,7 @@ builder.Services.AddSwaggerGen(options =>
         Scheme = "Bearer",
         BearerFormat = "JWT",
         In = ParameterLocation.Header,
-        Description = "Just paste your JWT token here — no need to type Bearer"
+        Description = "Enter JWT token"
     });
     options.AddSecurityRequirement(new OpenApiSecurityRequirement
     {
@@ -70,55 +62,61 @@ builder.Services.AddSwaggerGen(options =>
     });
 });
 
-// MediatR + Validation Pipeline
+// MediatR + Validation
 builder.Services.AddMediatR(cfg =>
 {
     cfg.RegisterServicesFromAssembly(Assembly.GetExecutingAssembly());
-    cfg.AddBehavior(typeof(IPipelineBehavior<,>),
-                    typeof(ValidationBehavior<,>));
+    cfg.AddBehavior(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
 });
 
-// FluentValidation
 builder.Services.AddValidatorsFromAssembly(Assembly.GetExecutingAssembly());
 
 // Repository
 builder.Services.AddScoped<IJobRepository, JobRepository>();
 
-// JWT Authentication
-var jwtKey = builder.Configuration["Jwt:Key"]
-    ?? throw new InvalidOperationException("JWT Key not configured");
-
-builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-    .AddJwtBearer(options =>
-    {
-        options.TokenValidationParameters = new TokenValidationParameters
+// JWT
+var jwtKey = builder.Configuration["Jwt:Key"];
+if (!string.IsNullOrEmpty(jwtKey))
+{
+    builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+        .AddJwtBearer(options =>
         {
-            ValidateIssuer = true,
-            ValidateAudience = true,
-            ValidateLifetime = true,
-            ValidateIssuerSigningKey = true,
-            ValidIssuer = builder.Configuration["Jwt:Issuer"],
-            ValidAudience = builder.Configuration["Jwt:Audience"],
-            IssuerSigningKey = new SymmetricSecurityKey(
-                Encoding.UTF8.GetBytes(jwtKey))
-        };
-    });
+            options.TokenValidationParameters = new TokenValidationParameters
+            {
+                ValidateIssuer = true,
+                ValidateAudience = true,
+                ValidateLifetime = true,
+                ValidateIssuerSigningKey = true,
+                ValidIssuer = builder.Configuration["Jwt:Issuer"],
+                ValidAudience = builder.Configuration["Jwt:Audience"],
+                IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey))
+            };
+        });
+}
 
 var app = builder.Build();
 
-// Enable Swagger in all environments
+// Swagger in all environments
 app.UseSwagger();
 app.UseSwaggerUI();
 
-// ✅ CRITICAL: CORS must come FIRST, before all other middleware
-app.UseCors("AllowFrontend");
-app.UseHttpsRedirection();
+// ✅ CRITICAL ORDER - CORS MUST BE FIRST
+app.UseCors("AllowAll");
+
+// Remove HTTPS redirect if causing issues
+// app.UseHttpsRedirection();
+
 app.UseMiddleware<ExceptionMiddleware>();
-app.UseAuthentication();
-app.UseAuthorization();
+
+if (!string.IsNullOrEmpty(builder.Configuration["Jwt:Key"]))
+{
+    app.UseAuthentication();
+    app.UseAuthorization();
+}
+
 app.MapControllers();
 
-// Health check endpoints
+// Health check
 app.MapGet("/", () => "JobService is running!");
 app.MapGet("/health", () => Results.Ok(new
 {

@@ -22,7 +22,7 @@ public class JobController : ControllerBase
         _mediator = mediator;
     }
 
-    // ✅ Public endpoints - No authentication required
+    // ✅ Public - No auth needed
     [HttpGet]
     [AllowAnonymous]
     public async Task<IActionResult> GetAllJobs()
@@ -39,7 +39,7 @@ public class JobController : ControllerBase
         return result.Success ? Ok(result) : NotFound(result);
     }
 
-    // ✅ Protected endpoints - Authentication required
+    // ✅ Protected - Auth required
     [HttpPost]
     [Authorize]
     public async Task<IActionResult> CreateJob([FromBody] CreateJobDto dto)
