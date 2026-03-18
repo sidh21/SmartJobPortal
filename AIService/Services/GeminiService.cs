@@ -9,19 +9,18 @@ public class GeminiService : IGeminiService
     private readonly HttpClient _http;
     private readonly string _apiKey;
 
-    // Models to try in order — if one fails move to next
+    // ✅ Use only free tier models
     private readonly string[] _models = new[]
     {
-        "gemini-2.0-flash-lite",
-        "gemini-2.0-flash",
-        "gemini-2.5-flash",
-        "gemini-2.0-flash-001"
+        "gemini-1.5-flash",
+        "gemini-1.5-flash-8b"
     };
 
     public GeminiService(HttpClient http, IConfiguration config)
     {
         _http = http;
-        _apiKey = config["Gemini:ApiKey"]!;
+        _apiKey = config["Gemini:ApiKey"]
+            ?? throw new InvalidOperationException("Gemini API Key not configured");
     }
 
     public async Task<string> GenerateAsync(
@@ -47,6 +46,11 @@ public class GeminiService : IGeminiService
                                 new { text = prompt }
                             }
                         }
+                    },
+                    generationConfig = new
+                    {
+                        temperature = 0.7,
+                        maxOutputTokens = 2048
                     }
                 };
 
@@ -56,18 +60,33 @@ public class GeminiService : IGeminiService
 
                 var response = await _http.PostAsync(url, content, ct);
 
-                // If rate limited try next model
-                if ((int)response.StatusCode == 429)
+                // Log the error for debugging
+                if (!response.IsSuccessStatusCode)
                 {
-                    lastException = new Exception(
-                        $"Model {model} rate limited, trying next...");
-                    continue;
+                    var errorContent = await response.Content.ReadAsStringAsync(ct);
+                    Console.WriteLine($"Gemini API Error ({model}): {response.StatusCode} - {errorContent}");
+
+                    // If 403, try next model
+                    if (response.StatusCode == System.Net.HttpStatusCode.Forbidden)
+                    {
+                        lastException = new Exception(
+                            $"Model {model} returned 403. Error: {errorContent}");
+                        continue;
+                    }
+
+                    // If rate limited, try next model
+                    if ((int)response.StatusCode == 429)
+                    {
+                        lastException = new Exception(
+                            $"Model {model} rate limited");
+                        await Task.Delay(2000, ct);
+                        continue;
+                    }
                 }
 
                 response.EnsureSuccessStatusCode();
 
-                var responseJson = await response.Content
-                    .ReadAsStringAsync(ct);
+                var responseJson = await response.Content.ReadAsStringAsync(ct);
                 var document = JsonDocument.Parse(responseJson);
 
                 return document
@@ -78,19 +97,19 @@ public class GeminiService : IGeminiService
                     .GetProperty("text")
                     .GetString()!;
             }
-            catch (Exception ex) when (ex.Message.Contains("429")
-                                    || ex.Message.Contains("rate limit")
-                                    || ex.Message.Contains("Rate limit"))
+            catch (Exception ex)
             {
                 lastException = ex;
-                // Wait 2 seconds before trying next model
-                await Task.Delay(2000, ct);
+                Console.WriteLine($"Error with model {model}: {ex.Message}");
+
+                // Wait before trying next model
+                await Task.Delay(1000, ct);
                 continue;
             }
         }
 
         throw new Exception(
-            $"All Gemini models are rate limited. Please wait a minute and try again. " +
-            $"Last error: {lastException?.Message}");
+            $"All Gemini models failed. Last error: {lastException?.Message}. " +
+            $"Please check your API key at https://aistudio.google.com/app/apikey");
     }
 }
