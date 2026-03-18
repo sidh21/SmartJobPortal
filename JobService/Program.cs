@@ -3,10 +3,13 @@ using JobService.Interfaces;
 using JobService.Middleware;
 using MediatR;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.DataProtection;
+using Microsoft.AspNetCore.DataProtection.KeyManagement;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Serilog;
 using System.Reflection;
+using System.Runtime.Intrinsics.Arm;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -14,7 +17,7 @@ var builder = WebApplication.CreateBuilder(args);
 // Configure port for Render
 var port = Environment.GetEnvironmentVariable("PORT") ?? "5002";
 Console.WriteLine($"Starting JobService on port {port}");
-builder.WebHost.UseUrls($"http://0.0.0.0:{port}"); // Changed from * to 0.0.0.0
+builder.WebHost.UseUrls($"http://0.0.0.0:{port}");
 
 // Serilog
 builder.Host.UseSerilog((ctx, cfg) =>
@@ -23,7 +26,7 @@ builder.Host.UseSerilog((ctx, cfg) =>
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 
-// ✅ FIXED CORS POLICY
+// ✅ FIXED CORS - Allow Vercel frontend
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontend", policy =>
@@ -35,8 +38,7 @@ builder.Services.AddCors(options =>
         )
         .AllowAnyMethod()
         .AllowAnyHeader()
-        .AllowCredentials()
-        .SetIsOriginAllowedToAllowWildcardSubdomains(); // Allow vercel preview deployments
+        .AllowCredentials();
     });
 });
 
@@ -82,8 +84,10 @@ builder.Services.AddValidatorsFromAssembly(Assembly.GetExecutingAssembly());
 // Repository
 builder.Services.AddScoped<IJobRepository, JobRepository>();
 
-// JWT
-var jwtKey = builder.Configuration["Jwt:Key"]!;
+// JWT Authentication
+var jwtKey = builder.Configuration["Jwt:Key"]
+    ?? throw new InvalidOperationException("JWT Key not configured");
+
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
@@ -96,16 +100,17 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidIssuer = builder.Configuration["Jwt:Issuer"],
             ValidAudience = builder.Configuration["Jwt:Audience"],
             IssuerSigningKey = new SymmetricSecurityKey(
-                                           Encoding.UTF8.GetBytes(jwtKey))
+                Encoding.UTF8.GetBytes(jwtKey))
         };
     });
 
 var app = builder.Build();
 
+// Enable Swagger in all environments
 app.UseSwagger();
 app.UseSwaggerUI();
 
-// ✅ IMPORTANT: CORS must come BEFORE Authentication/Authorization
+// ✅ CRITICAL: CORS must come FIRST, before all other middleware
 app.UseCors("AllowFrontend");
 app.UseHttpsRedirection();
 app.UseMiddleware<ExceptionMiddleware>();
@@ -113,7 +118,13 @@ app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
 
-// Health check endpoint
+// Health check endpoints
 app.MapGet("/", () => "JobService is running!");
+app.MapGet("/health", () => Results.Ok(new
+{
+    status = "healthy",
+    service = "JobService",
+    timestamp = DateTime.UtcNow
+}));
 
 app.Run();

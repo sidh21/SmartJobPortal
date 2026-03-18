@@ -1,18 +1,19 @@
 import axios from 'axios';
 import { ApiResponse, CreateJobDto, Job } from '../types';
 
+// ✅ Correct URL from your .env.production
 const BASE_URL = process.env.REACT_APP_JOB_API || 'https://smartjobportal-job.onrender.com/api/Job';
 
-// ✅ Configure axios instance with credentials
+// Configure axios instance
 const axiosInstance = axios.create({
   baseURL: BASE_URL,
-  withCredentials: true, // Important for CORS with credentials
+  withCredentials: true,
   headers: {
     'Content-Type': 'application/json'
   }
 });
 
-// ✅ Add request interceptor to attach token
+// Add request interceptor to attach token
 axiosInstance.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('token');
