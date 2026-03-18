@@ -21,19 +21,23 @@ public class AuthRepository : IAuthRepository
     {
         using var conn = CreateConnection();
 
-        var parameters = new DynamicParameters();
-        parameters.Add("p_FullName", user.FullName);
-        parameters.Add("p_Email", user.Email);
-        parameters.Add("p_PasswordHash", user.PasswordHash);
-        parameters.Add("p_Role", user.Role);
-        parameters.Add("p_UserId", dbType: DbType.Int32, direction: ParameterDirection.Output);
+        var p_UserId = new NpgsqlParameter("p_UserId", NpgsqlTypes.NpgsqlDbType.Integer)
+        {
+            Direction = ParameterDirection.Output
+        };
 
         await conn.ExecuteAsync(
             "CALL \"usp_RegisterUser\"(@p_FullName, @p_Email, @p_PasswordHash, @p_Role, @p_UserId)",
-            parameters
+            new NpgsqlParameter[]
+            {
+                new NpgsqlParameter("p_FullName", user.FullName),
+                new NpgsqlParameter("p_Email", user.Email),
+                new NpgsqlParameter("p_PasswordHash", user.PasswordHash),
+                new NpgsqlParameter("p_Role", user.Role),
+                p_UserId
+            }
         );
-
-        return parameters.Get<int>("p_UserId");
+        return (int)p_UserId.Value;
     }
 
     public async Task<User?> GetUserByEmailAsync(string email)
