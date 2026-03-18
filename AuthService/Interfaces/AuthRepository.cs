@@ -20,13 +20,13 @@ public class AuthRepository : IAuthRepository
     {
         using var conn = CreateConnection();
         return await conn.ExecuteScalarAsync<int>(
-            "usp_RegisterUser",
+            "\"usp_RegisterUser\"",  // CHANGED: Added double quotes
             new
             {
-                p_FullName = user.FullName,           
-                p_Email = user.Email,                 
-                p_PasswordHash = user.PasswordHash,   
-                p_Role = user.Role                    
+                p_FullName = user.FullName,
+                p_Email = user.Email,
+                p_PasswordHash = user.PasswordHash,
+                p_Role = user.Role
             },
             commandType: System.Data.CommandType.StoredProcedure
         );
@@ -36,8 +36,8 @@ public class AuthRepository : IAuthRepository
     {
         using var conn = CreateConnection();
         return await conn.QueryFirstOrDefaultAsync<User>(
-            "usp_GetUserByEmail",
-            new { p_Email = email }, 
+            "\"usp_GetUserByEmail\"",  // CHANGED: Added double quotes
+            new { p_Email = email },
             commandType: System.Data.CommandType.StoredProcedure
         );
     }
@@ -46,8 +46,8 @@ public class AuthRepository : IAuthRepository
     {
         using var conn = CreateConnection();
         return await conn.QueryFirstOrDefaultAsync<User>(
-            "usp_GetUserById",
-            new { p_UserId = userId }, 
+            "\"usp_GetUserById\"",
+            new { p_UserId = userId },
             commandType: System.Data.CommandType.StoredProcedure
         );
     }
