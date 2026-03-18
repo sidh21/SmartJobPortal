@@ -8,111 +8,108 @@ public class GeminiService : IGeminiService
 {
     private readonly HttpClient _http;
     private readonly string _apiKey;
-    private readonly bool _useGroq;
+
+    // ✅ Use only free tier models
+    private readonly string[] _models = new[]
+    {
+        "gemini-1.5-flash",
+        "gemini-1.5-flash-8b"
+    };
 
     public GeminiService(HttpClient http, IConfiguration config)
     {
         _http = http;
-
-        // Check which API to use
-        _apiKey = config["Groq:ApiKey"] ?? config["Gemini:ApiKey"]
-            ?? throw new InvalidOperationException("No AI API Key configured");
-
-        _useGroq = !string.IsNullOrEmpty(config["Groq:ApiKey"]);
+        _apiKey = config["Gemini:ApiKey"]
+            ?? throw new InvalidOperationException("Gemini API Key not configured");
     }
 
     public async Task<string> GenerateAsync(
         string prompt, CancellationToken ct = default)
     {
-        if (_useGroq)
-        {
-            return await GenerateWithGroqAsync(prompt, ct);
-        }
-        else
-        {
-            return await GenerateWithGeminiAsync(prompt, ct);
-        }
-    }
+        Exception? lastException = null;
 
-    private async Task<string> GenerateWithGroqAsync(
-        string prompt, CancellationToken ct)
-    {
-        var url = "https://api.groq.com/openai/v1/chat/completions";
-
-        var body = new
+        foreach (var model in _models)
         {
-            model = "llama-3.1-70b-versatile", // or "mixtral-8x7b-32768"
-            messages = new[]
+            try
             {
-                new { role = "user", content = prompt }
-            },
-            temperature = 0.7,
-            max_tokens = 2048
-        };
+                var url = $"https://generativelanguage.googleapis.com/v1beta/models/" +
+                          $"{model}:generateContent?key={_apiKey}";
 
-        var json = JsonSerializer.Serialize(body);
-        var content = new StringContent(json, Encoding.UTF8, "application/json");
-
-        _http.DefaultRequestHeaders.Clear();
-        _http.DefaultRequestHeaders.Add("Authorization", $"Bearer {_apiKey}");
-
-        var response = await _http.PostAsync(url, content, ct);
-
-        if (!response.IsSuccessStatusCode)
-        {
-            var error = await response.Content.ReadAsStringAsync(ct);
-            throw new Exception($"Groq API Error: {response.StatusCode} - {error}");
-        }
-
-        var responseJson = await response.Content.ReadAsStringAsync(ct);
-        var document = JsonDocument.Parse(responseJson);
-
-        return document
-            .RootElement
-            .GetProperty("choices")[0]
-            .GetProperty("message")
-            .GetProperty("content")
-            .GetString()!;
-    }
-
-    private async Task<string> GenerateWithGeminiAsync(
-        string prompt, CancellationToken ct)
-    {
-        var model = "gemini-1.5-flash";
-        var url = $"https://generativelanguage.googleapis.com/v1beta/models/" +
-                  $"{model}:generateContent?key={_apiKey}";
-
-        var body = new
-        {
-            contents = new[]
-            {
-                new
+                var body = new
                 {
-                    parts = new[] { new { text = prompt } }
+                    contents = new[]
+                    {
+                        new
+                        {
+                            parts = new[]
+                            {
+                                new { text = prompt }
+                            }
+                        }
+                    },
+                    generationConfig = new
+                    {
+                        temperature = 0.7,
+                        maxOutputTokens = 2048
+                    }
+                };
+
+                var json = JsonSerializer.Serialize(body);
+                var content = new StringContent(
+                    json, Encoding.UTF8, "application/json");
+
+                var response = await _http.PostAsync(url, content, ct);
+
+                // Log the error for debugging
+                if (!response.IsSuccessStatusCode)
+                {
+                    var errorContent = await response.Content.ReadAsStringAsync(ct);
+                    Console.WriteLine($"Gemini API Error ({model}): {response.StatusCode} - {errorContent}");
+
+                    // If 403, try next model
+                    if (response.StatusCode == System.Net.HttpStatusCode.Forbidden)
+                    {
+                        lastException = new Exception(
+                            $"Model {model} returned 403. Error: {errorContent}");
+                        continue;
+                    }
+
+                    // If rate limited, try next model
+                    if ((int)response.StatusCode == 429)
+                    {
+                        lastException = new Exception(
+                            $"Model {model} rate limited");
+                        await Task.Delay(2000, ct);
+                        continue;
+                    }
                 }
+
+                response.EnsureSuccessStatusCode();
+
+                var responseJson = await response.Content.ReadAsStringAsync(ct);
+                var document = JsonDocument.Parse(responseJson);
+
+                return document
+                    .RootElement
+                    .GetProperty("candidates")[0]
+                    .GetProperty("content")
+                    .GetProperty("parts")[0]
+                    .GetProperty("text")
+                    .GetString()!;
             }
-        };
+            catch (Exception ex)
+            {
+                lastException = ex;
+                Console.WriteLine($"Error with model {model}: {ex.Message}");
 
-        var json = JsonSerializer.Serialize(body);
-        var content = new StringContent(json, Encoding.UTF8, "application/json");
-
-        var response = await _http.PostAsync(url, content, ct);
-
-        if (!response.IsSuccessStatusCode)
-        {
-            var error = await response.Content.ReadAsStringAsync(ct);
-            throw new Exception($"Gemini API Error: {response.StatusCode} - {error}");
+                // Wait before trying next model
+                await Task.Delay(1000, ct);
+                continue;
+            }
         }
 
-        var responseJson = await response.Content.ReadAsStringAsync(ct);
-        var document = JsonDocument.Parse(responseJson);
-
-        return document
-            .RootElement
-            .GetProperty("candidates")[0]
-            .GetProperty("content")
-            .GetProperty("parts")[0]
-            .GetProperty("text")
-            .GetString()!;
+        throw new Exception(
+            $"All Gemini models failed. Last error: {lastException?.Message}. " +
+            $"Please check your API key at https://aistudio.google.com/app/apikey");
     }
 }
