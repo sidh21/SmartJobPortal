@@ -20,7 +20,7 @@ public class AIController : ControllerBase
     }
 
     [HttpPost("screen-resume")]
-    [AllowAnonymous] // ✅ Remove auth requirement for testing
+    [AllowAnonymous]
     public async Task<IActionResult> ScreenResume([FromBody] ScreenResumeDto dto)
     {
         var command = new ScreenResumeCommand(
@@ -34,7 +34,7 @@ public class AIController : ControllerBase
     }
 
     [HttpPost("generate-jd")]
-    [AllowAnonymous] // ✅ Remove auth requirement for testing
+    [AllowAnonymous]
     public async Task<IActionResult> GenerateJD([FromBody] GenerateJDDto dto)
     {
         var command = new GenerateJDCommand(

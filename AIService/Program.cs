@@ -8,7 +8,6 @@ using System.Reflection;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Configure port for Render
 var port = Environment.GetEnvironmentVariable("PORT") ?? "5004";
 Console.WriteLine($"Starting AIService on port {port}");
 builder.WebHost.UseUrls($"http://0.0.0.0:{port}");
@@ -20,7 +19,7 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-// ✅ FIXED CORS - AllowAnyOrigin (no credentials)
+// ✅ CORS
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAll", policy =>
@@ -47,12 +46,7 @@ var app = builder.Build();
 app.UseSwagger();
 app.UseSwaggerUI();
 
-// ✅ CORS MUST COME FIRST
 app.UseCors("AllowAll");
-
-// Remove HTTPS redirect if causing issues
-// app.UseHttpsRedirection();
-
 app.UseMiddleware<ExceptionMiddleware>();
 app.MapControllers();
 
