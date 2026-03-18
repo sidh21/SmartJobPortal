@@ -3,6 +3,7 @@ using AIService.Features.GenerateJD;
 using AIService.Features.RankCandidates;
 using AIService.Features.ResumeScreening;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace AIService.Controllers;
@@ -19,6 +20,7 @@ public class AIController : ControllerBase
     }
 
     [HttpPost("screen-resume")]
+    [AllowAnonymous] // ✅ Remove auth requirement for testing
     public async Task<IActionResult> ScreenResume([FromBody] ScreenResumeDto dto)
     {
         var command = new ScreenResumeCommand(
@@ -32,6 +34,7 @@ public class AIController : ControllerBase
     }
 
     [HttpPost("generate-jd")]
+    [AllowAnonymous] // ✅ Remove auth requirement for testing
     public async Task<IActionResult> GenerateJD([FromBody] GenerateJDDto dto)
     {
         var command = new GenerateJDCommand(
@@ -45,6 +48,7 @@ public class AIController : ControllerBase
     }
 
     [HttpPost("rank-candidates")]
+    [AllowAnonymous]
     public async Task<IActionResult> RankCandidates(
         [FromBody] RankCandidatesCommand command)
     {

@@ -1,4 +1,4 @@
-using AIService.Interfaces;
+﻿using AIService.Interfaces;
 using AIService.Middleware;
 using AIService.Services;
 using FluentValidation;
@@ -8,10 +8,10 @@ using System.Reflection;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// ADD THIS: Configure port for Render
+// Configure port for Render
 var port = Environment.GetEnvironmentVariable("PORT") ?? "5004";
 Console.WriteLine($"Starting AIService on port {port}");
-builder.WebHost.UseUrls($"http://*:{port}");
+builder.WebHost.UseUrls($"http://0.0.0.0:{port}");
 
 builder.Host.UseSerilog((ctx, cfg) =>
     cfg.ReadFrom.Configuration(ctx.Configuration));
@@ -20,27 +20,14 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-// Add CORS policy with environment support
+// ✅ FIXED CORS - AllowAnyOrigin (no credentials)
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowReactApp", policy =>
+    options.AddPolicy("AllowAll", policy =>
     {
-        if (builder.Environment.IsDevelopment())
-        {
-            // In development, allow localhost
-            policy.WithOrigins("http://localhost:3000", "http://localhost:3001")
-                  .AllowAnyHeader()
-                  .AllowAnyMethod()
-                  .AllowCredentials();
-        }
-        else
-        {
-            // In production, only allow your live frontend
-            policy.WithOrigins("https://smartjobportal-frontend.vercel.app")
-                  .AllowAnyHeader()
-                  .AllowAnyMethod()
-                  .AllowCredentials();
-        }
+        policy.AllowAnyOrigin()
+              .AllowAnyMethod()
+              .AllowAnyHeader();
     });
 });
 
@@ -52,26 +39,29 @@ builder.Services.AddMediatR(cfg =>
 });
 
 builder.Services.AddValidatorsFromAssembly(Assembly.GetExecutingAssembly());
-
 builder.Services.AddHttpClient<IGeminiService, GeminiService>();
 builder.Services.AddScoped<IAIRepository, AIRepository>();
 
 var app = builder.Build();
 
-// FIX: Enable Swagger in ALL environments (remove if condition)
 app.UseSwagger();
 app.UseSwaggerUI();
 
-app.UseHttpsRedirection();
+// ✅ CORS MUST COME FIRST
+app.UseCors("AllowAll");
 
-// CORS must be placed after UseHttpsRedirection
-app.UseCors("AllowReactApp");
+// Remove HTTPS redirect if causing issues
+// app.UseHttpsRedirection();
 
-// No Authentication/Authorization middleware since JWT is not needed
 app.UseMiddleware<ExceptionMiddleware>();
 app.MapControllers();
 
-// ADD THIS: Health check endpoint
 app.MapGet("/", () => "AIService is running!");
+app.MapGet("/health", () => Results.Ok(new
+{
+    status = "healthy",
+    service = "AIService",
+    timestamp = DateTime.UtcNow
+}));
 
 app.Run();
