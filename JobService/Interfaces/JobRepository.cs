@@ -1,6 +1,8 @@
 ﻿using Dapper;
 using JobService.Models;
-using Npgsql; 
+using Npgsql;
+using System.Data;
+
 namespace JobService.Interfaces;
 
 public class JobRepository : IJobRepository
@@ -12,24 +14,23 @@ public class JobRepository : IJobRepository
         _connectionString = config.GetConnectionString("DefaultConnection")!;
     }
 
-    private NpgsqlConnection CreateConnection() => 
+    private NpgsqlConnection CreateConnection() =>
         new NpgsqlConnection(_connectionString);
 
     public async Task<int> CreateJobAsync(Job job)
     {
         using var conn = CreateConnection();
         var result = await conn.ExecuteScalarAsync<int>(
-            "usp_CreateJob",
+            "CALL \"usp_CreateJob\"(@p_Title, @p_Company, @p_Description, @p_Location, @p_Salary, @p_JobType, null)",
             new
             {
-                p_Title = job.Title,             
-                p_Company = job.Company,         
-                p_Description = job.Description, 
-                p_Location = job.Location,       
-                p_Salary = job.Salary,           
-                p_JobType = job.JobType          
-            },
-            commandType: System.Data.CommandType.StoredProcedure
+                p_Title = job.Title,
+                p_Company = job.Company,
+                p_Description = job.Description,
+                p_Location = job.Location,
+                p_Salary = job.Salary,
+                p_JobType = job.JobType
+            }
         );
         return result;
     }
@@ -38,8 +39,8 @@ public class JobRepository : IJobRepository
     {
         using var conn = CreateConnection();
         return await conn.QueryAsync<Job>(
-            "usp_GetAllJobs",
-            commandType: System.Data.CommandType.StoredProcedure
+            "SELECT * FROM \"usp_GetAllJobs\"()",  // Call function with SELECT
+            commandType: System.Data.CommandType.Text
         );
     }
 
@@ -47,9 +48,9 @@ public class JobRepository : IJobRepository
     {
         using var conn = CreateConnection();
         return await conn.QueryFirstOrDefaultAsync<Job>(
-            "usp_GetJobById",
-            new { p_JobId = jobId }, 
-            commandType: System.Data.CommandType.StoredProcedure
+            "SELECT * FROM \"usp_GetJobById\"(@p_JobId)",  // Call function with SELECT
+            new { p_JobId = jobId },
+            commandType: System.Data.CommandType.Text
         );
     }
 
@@ -57,18 +58,17 @@ public class JobRepository : IJobRepository
     {
         using var conn = CreateConnection();
         await conn.ExecuteAsync(
-            "usp_UpdateJob",
+            "CALL \"usp_UpdateJob\"(@p_JobId, @p_Title, @p_Company, @p_Description, @p_Location, @p_Salary, @p_JobType)",
             new
             {
-                p_JobId = job.JobId,              
-                p_Title = job.Title,              
-                p_Company = job.Company,          
-                p_Description = job.Description,  
-                p_Location = job.Location,        
-                p_Salary = job.Salary,            
-                p_JobType = job.JobType           
-            },
-            commandType: System.Data.CommandType.StoredProcedure
+                p_JobId = job.JobId,
+                p_Title = job.Title,
+                p_Company = job.Company,
+                p_Description = job.Description,
+                p_Location = job.Location,
+                p_Salary = job.Salary,
+                p_JobType = job.JobType
+            }
         );
     }
 
@@ -76,9 +76,8 @@ public class JobRepository : IJobRepository
     {
         using var conn = CreateConnection();
         await conn.ExecuteAsync(
-            "usp_DeleteJob",
-            new { p_JobId = jobId },  
-            commandType: System.Data.CommandType.StoredProcedure
+            "CALL \"usp_DeleteJob\"(@p_JobId)",
+            new { p_JobId = jobId }
         );
     }
 }
