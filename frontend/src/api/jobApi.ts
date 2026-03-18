@@ -1,9 +1,9 @@
 import axios from 'axios';
 import { ApiResponse, CreateJobDto, Job } from '../types';
 
-const BASE_URL = process.env.REACT_APP_JOB_API || 'https://smartjobportal-job.onrender.com/api/Job';
+// ✅ Use the correct URL
+const BASE_URL = process.env.REACT_APP_JOB_API || 'https://jobservice-5xon.onrender.com/api/Job';
 
-// ✅ Simplified axios instance
 const axiosInstance = axios.create({
   baseURL: BASE_URL,
   headers: {
@@ -11,7 +11,6 @@ const axiosInstance = axios.create({
   }
 });
 
-// Add token to protected requests
 axiosInstance.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('token');
