@@ -1,7 +1,6 @@
 ﻿using Dapper;
 using JobService.Models;
-using Microsoft.Data.SqlClient;
-
+using Npgsql; 
 namespace JobService.Interfaces;
 
 public class JobRepository : IJobRepository
@@ -13,8 +12,8 @@ public class JobRepository : IJobRepository
         _connectionString = config.GetConnectionString("DefaultConnection")!;
     }
 
-    private SqlConnection CreateConnection() =>
-        new SqlConnection(_connectionString);
+    private NpgsqlConnection CreateConnection() => 
+        new NpgsqlConnection(_connectionString);
 
     public async Task<int> CreateJobAsync(Job job)
     {
@@ -23,12 +22,12 @@ public class JobRepository : IJobRepository
             "usp_CreateJob",
             new
             {
-                job.Title,
-                job.Company,
-                job.Description,
-                job.Location,
-                job.Salary,
-                job.JobType
+                p_Title = job.Title,             
+                p_Company = job.Company,         
+                p_Description = job.Description, 
+                p_Location = job.Location,       
+                p_Salary = job.Salary,           
+                p_JobType = job.JobType          
             },
             commandType: System.Data.CommandType.StoredProcedure
         );
@@ -49,7 +48,7 @@ public class JobRepository : IJobRepository
         using var conn = CreateConnection();
         return await conn.QueryFirstOrDefaultAsync<Job>(
             "usp_GetJobById",
-            new { JobId = jobId },
+            new { p_JobId = jobId }, 
             commandType: System.Data.CommandType.StoredProcedure
         );
     }
@@ -61,13 +60,13 @@ public class JobRepository : IJobRepository
             "usp_UpdateJob",
             new
             {
-                job.JobId,
-                job.Title,
-                job.Company,
-                job.Description,
-                job.Location,
-                job.Salary,
-                job.JobType
+                p_JobId = job.JobId,              
+                p_Title = job.Title,              
+                p_Company = job.Company,          
+                p_Description = job.Description,  
+                p_Location = job.Location,        
+                p_Salary = job.Salary,            
+                p_JobType = job.JobType           
             },
             commandType: System.Data.CommandType.StoredProcedure
         );
@@ -78,7 +77,7 @@ public class JobRepository : IJobRepository
         using var conn = CreateConnection();
         await conn.ExecuteAsync(
             "usp_DeleteJob",
-            new { JobId = jobId },
+            new { p_JobId = jobId },  
             commandType: System.Data.CommandType.StoredProcedure
         );
     }

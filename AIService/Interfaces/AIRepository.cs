@@ -1,6 +1,6 @@
 ﻿using AIService.Models;
 using Dapper;
-using Microsoft.Data.SqlClient;
+using Npgsql;
 
 namespace AIService.Interfaces;
 
@@ -13,8 +13,8 @@ public class AIRepository : IAIRepository
         _connectionString = config.GetConnectionString("DefaultConnection")!;
     }
 
-    private SqlConnection CreateConnection() =>
-        new SqlConnection(_connectionString);
+    private NpgsqlConnection CreateConnection() =>
+        new NpgsqlConnection(_connectionString);
 
     public async Task<int> SaveAIResultAsync(AIResult result)
     {
@@ -23,12 +23,12 @@ public class AIRepository : IAIRepository
             "usp_SaveAIResult",
             new
             {
-                result.ApplicationId,
-                result.JobId,
-                result.MatchScore,
-                result.Strengths,
-                result.Gaps,
-                result.Recommendation
+                p_ApplicationId = result.ApplicationId, 
+                p_JobId = result.JobId,                 
+                p_MatchScore = result.MatchScore,       
+                p_Strengths = result.Strengths,         
+                p_Gaps = result.Gaps,                   
+                p_Recommendation = result.Recommendation
             },
             commandType: System.Data.CommandType.StoredProcedure
         );
@@ -39,7 +39,7 @@ public class AIRepository : IAIRepository
         using var conn = CreateConnection();
         return await conn.QueryFirstOrDefaultAsync<AIResult>(
             "usp_GetAIResultByApplicationId",
-            new { ApplicationId = applicationId },
+            new { p_ApplicationId = applicationId },
             commandType: System.Data.CommandType.StoredProcedure
         );
     }

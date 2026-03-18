@@ -1,6 +1,6 @@
 ﻿using ApplicationService.Models;
 using Dapper;
-using Microsoft.Data.SqlClient;
+using Npgsql;
 
 namespace ApplicationService.Interfaces;
 
@@ -13,8 +13,8 @@ public class ApplicationRepository : IApplicationRepository
         _connectionString = config.GetConnectionString("DefaultConnection")!;
     }
 
-    private SqlConnection CreateConnection() =>
-        new SqlConnection(_connectionString);
+    private NpgsqlConnection CreateConnection() =>
+        new NpgsqlConnection(_connectionString);
 
     public async Task<int> CreateApplicationAsync(Application application)
     {
@@ -23,11 +23,11 @@ public class ApplicationRepository : IApplicationRepository
             "usp_CreateApplication",
             new
             {
-                application.JobId,
-                application.CandidateName,
-                application.CandidateEmail,
-                application.ResumeText,
-                application.CoverLetter
+                p_JobId = application.JobId,               
+                p_CandidateName = application.CandidateName,
+                p_CandidateEmail = application.CandidateEmail,
+                p_ResumeText = application.ResumeText,       
+                p_CoverLetter = application.CoverLetter   
             },
             commandType: System.Data.CommandType.StoredProcedure
         );
@@ -38,7 +38,7 @@ public class ApplicationRepository : IApplicationRepository
         using var conn = CreateConnection();
         return await conn.QueryAsync<Application>(
             "usp_GetApplicationsByJobId",
-            new { JobId = jobId },
+            new { p_JobId = jobId },
             commandType: System.Data.CommandType.StoredProcedure
         );
     }
@@ -48,7 +48,7 @@ public class ApplicationRepository : IApplicationRepository
         using var conn = CreateConnection();
         return await conn.QueryFirstOrDefaultAsync<Application>(
             "usp_GetApplicationById",
-            new { ApplicationId = applicationId },
+            new { p_ApplicationId = applicationId },
             commandType: System.Data.CommandType.StoredProcedure
         );
     }
@@ -58,7 +58,11 @@ public class ApplicationRepository : IApplicationRepository
         using var conn = CreateConnection();
         await conn.ExecuteAsync(
             "usp_UpdateApplicationStatus",
-            new { ApplicationId = applicationId, Status = status },
+            new
+            {
+                p_ApplicationId = applicationId,  
+                p_Status = status                 
+            },
             commandType: System.Data.CommandType.StoredProcedure
         );
     }

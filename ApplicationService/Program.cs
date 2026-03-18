@@ -11,7 +11,7 @@ using System.Text;
 var builder = WebApplication.CreateBuilder(args);
 
 // ADD THIS: Configure port for Render
-var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
+var port = Environment.GetEnvironmentVariable("PORT") ?? "5003";
 Console.WriteLine($"Starting ApplicationService on port {port}");
 builder.WebHost.UseUrls($"http://*:{port}");
 

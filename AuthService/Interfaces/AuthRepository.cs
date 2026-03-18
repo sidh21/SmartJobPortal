@@ -1,6 +1,6 @@
 ﻿using AuthService.Models;
 using Dapper;
-using Microsoft.Data.SqlClient;
+using Npgsql;
 
 namespace AuthService.Interfaces;
 
@@ -13,8 +13,8 @@ public class AuthRepository : IAuthRepository
         _connectionString = config.GetConnectionString("DefaultConnection")!;
     }
 
-    private SqlConnection CreateConnection() =>
-        new SqlConnection(_connectionString);
+    private NpgsqlConnection CreateConnection() =>
+        new NpgsqlConnection(_connectionString);
 
     public async Task<int> RegisterUserAsync(User user)
     {
@@ -23,10 +23,10 @@ public class AuthRepository : IAuthRepository
             "usp_RegisterUser",
             new
             {
-                user.FullName,
-                user.Email,
-                user.PasswordHash,
-                user.Role
+                p_FullName = user.FullName,           
+                p_Email = user.Email,                 
+                p_PasswordHash = user.PasswordHash,   
+                p_Role = user.Role                    
             },
             commandType: System.Data.CommandType.StoredProcedure
         );
@@ -37,7 +37,7 @@ public class AuthRepository : IAuthRepository
         using var conn = CreateConnection();
         return await conn.QueryFirstOrDefaultAsync<User>(
             "usp_GetUserByEmail",
-            new { Email = email },
+            new { p_Email = email }, 
             commandType: System.Data.CommandType.StoredProcedure
         );
     }
@@ -47,7 +47,7 @@ public class AuthRepository : IAuthRepository
         using var conn = CreateConnection();
         return await conn.QueryFirstOrDefaultAsync<User>(
             "usp_GetUserById",
-            new { UserId = userId },
+            new { p_UserId = userId }, 
             commandType: System.Data.CommandType.StoredProcedure
         );
     }
