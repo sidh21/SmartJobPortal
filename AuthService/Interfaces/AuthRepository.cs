@@ -21,23 +21,19 @@ public class AuthRepository : IAuthRepository
     {
         using var conn = CreateConnection();
 
-        var p_UserId = new NpgsqlParameter("p_UserId", NpgsqlTypes.NpgsqlDbType.Integer)
-        {
-            Direction = ParameterDirection.Output
-        };
+        // Create dynamic parameters for Dapper
+        var parameters = new DynamicParameters();
+        parameters.Add("p_FullName", user.FullName, DbType.String);
+        parameters.Add("p_Email", user.Email, DbType.String);
+        parameters.Add("p_PasswordHash", user.PasswordHash, DbType.String);
+        parameters.Add("p_Role", user.Role, DbType.String);
+        parameters.Add("p_UserId", dbType: DbType.Int32, direction: ParameterDirection.InputOutput, value: null);
 
         await conn.ExecuteAsync(
-            "CALL \"usp_RegisterUser\"(@\"p_FullName\", @\"p_Email\", @\"p_PasswordHash\", @\"p_Role\", @\"p_UserId\")",
-            new NpgsqlParameter[]
-            {
-                new NpgsqlParameter("\"p_FullName\"", user.FullName),
-                new NpgsqlParameter("\"p_Email\"", user.Email),
-                new NpgsqlParameter("\"p_PasswordHash\"", user.PasswordHash),
-                new NpgsqlParameter("\"p_Role\"", user.Role),
-                p_UserId
-            }
+            "CALL \"usp_RegisterUser\"(@p_FullName, @p_Email, @p_PasswordHash, @p_Role, @p_UserId)",
+            parameters
         );
-        return (int)p_UserId.Value;
+        return parameters.Get<int>("p_UserId");
     }
 
     public async Task<User?> GetUserByEmailAsync(string email)
