@@ -7,7 +7,7 @@ using JobService.Features.UpdateJob;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Shared.DTOs;
+//using Shared.DTOs;
 
 namespace JobService.Controllers;
 
